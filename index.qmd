@@ -1,0 +1,308 @@
+---
+title: "Ordinal Logistic Regression with the Big Five"
+subtitle: "Lab demo: does Agreeableness predict 'Get angry easily'?"
+author: "Michaela Luceno" 
+format:
+  html:
+    toc: true
+    code-fold: false
+    embed-resources: true
+    html-math-method: katex
+execute:
+  echo: true
+  warning: false
+  message: false
+  fig-width: 8
+  fig-height: 4.4
+---
+
+# 1. Configuring Analysis
+
+```{r, loading packages}
+#| label: loading-packages
+
+
+library(tidyverse)
+library(readxl)
+library(psych)
+library(ordinal)
+library(ggeffects)
+library(broom)
+library(gt)
+```
+
+## 1.3. Load and Inspect Analysis
+
+```{r, loading dataset}
+#| label: loading-dataset 
+#| echo: false
+
+data <- read_excel("./bfi.xlsx")
+
+data<- data|>
+  mutate_at(2:26, as.integer)
+
+# Check the data
+#head(data)
+```
+
+## 1.4. Choosing Variables
+
+This `bfi` data highlights the Big Five Personality index, with 5 personality traits/behaviours in each (25 total). Data was collected from 2800 people. Questions were answered on a 6-point Likert scale from *Very inaccurate* to *Very accurate*.
+
+The **chosen trait is Extraversion**. The ordered outcome is one Neuroticism item, **E4, "Make Friends easily."** The predictor is a person's **Agreeableness subscale score**, the mean of A1 to A5 with A1 reverse-keyed.
+
+I predict that as people are more agreeable, that they will make friends more easily. I expect that the predictor of Agreeableness will be positively associated with higher scores in the ability to predict friends. This is because the trait of agreeableness centers around friendliness and getting along well with others, which is conducive to making friends easily.
+
+## 1.5. Preparing the Analysis Data
+
+```{r, prepping data}
+#| echo: FALSE 
+
+#Assigning labels for the six Likert response options, from lowest to highest 
+n_levels <- c("Very inaccurate", "Moderately inaccurate", "Slightly inaccurate", "Slightly accurate", "Moderately accurate", "Very accurate")
+
+# Scoring keys with reverse-keyed items
+keys <- list(
+  Agreeableness     = c("-A1", "A2", "A3", "A4", "A5"),
+  Conscientiousness = c("C1", "C2", "C3", "-C4", "-C5"),
+  Extraversion      = c("-E1", "-E2", "E3", "E4", "E5"),
+  Neuroticism       = c("N1", "N2", "N3", "N4", "N5"),
+  Openness          = c("O1", "-O2", "O3", "O4", "-O5"))
+
+scores<-scoreItems(keys, data, totals = F, min=1, max=6)
+
+scores_df<- scores$scores
+
+#Converting outcome to an ordered & unordered factor using previous 6 Likert labels (lowest to highest)
+data <- data |>
+  select(E4) |>
+  bind_cols(as_tibble(scores_df)) |>
+  mutate(
+    E4 = factor(E4, levels = 1:6, labels = n_levels, ordered = TRUE),   
+# Ordered Component ^ 
+    highest = factor(names(keys)[max.col(scores_df, ties.method = "first")]),  
+#Unordered outcome created for the dominant trait (highest score) ^ 
+    agree = Agreeableness
+  ) |>
+  drop_na(E4, agree, highest) |>
+#Drop missing cases ^ 
+  mutate(agree_c = agree - mean(agree))  
+#Centre
+
+agree_bar <- mean(data$agree)
+
+agree_bar
+#nrow(data)
+```
+
+The *N* analyzed was the number of participants left after removing those with improper (incomplete/missing) data for E4. This number was N = `r nrow(data)`. The predictor was scored being the mean of 5 Agreeableness behaviours in the questionnaire, with A1 reverse scored and A2-A5 staying the same. The rest were scored from 106 with lower values representing less of the behaviour. The mean was calculated with `mean(data$agree)`, which was `r round(agree_bar, 2)`.
+
+# 2. Examining the Outcomes
+
+## 2.1. The Ordered Outcome
+
+```{r, checking counts}
+#| echo: FALSE
+
+#Counting people who chose each response for our outcome (E4)
+E4_counts <- data |>
+  count(E4) |>
+# p = proportion of the sample in each category, P(Y = j).
+  mutate(p = n / sum(n))
+
+#Ensuring that no category is empty/sparse 
+E4_counts
+#Each category has enough responses 
+```
+
+```{r, bar graph}
+#| echo: FALSE 
+
+#Creating a bar graph plot of counts 
+plot_E4 <- ggplot(E4_counts, aes(x = E4, y = n, fill = E4)) +
+  geom_col(width = 0.7) +
+  scale_x_discrete(labels = scales::label_wrap(11)) +
+  labs(title = "Six ordered categories: 'Making Friends Easily'",
+       x = NULL, y = "People") +
+  theme_minimal() +
+  theme(legend.position = "none", 
+        plot.title = element_text(size = 10),
+        axis.text.x = element_text(size = 8))
+
+plot_E4
+
+```
+
+The data here shows that *Slightly inaccurate* has the smallest response `r min(E4_counts$n)`; thresholds can be estimated without merging or altering any categories. Though the values were variable, none were so sparse that they were unable to be used.
+
+## 2.2. How Predictor Relates to the Outcome
+
+### Jittered Dot Plots
+
+```{r, jittered plot}
+#| echo: FALSE 
+
+#Predictor on the x (agreeableness), and 6-value response on the y 
+
+E4_jitter_plot <- ggplot(data, aes(agree, as.numeric(E4), colour = E4)) +
+  geom_jitter(width = 0.05, height = 0.15, alpha = 0.25, size = 1.4) +
+  scale_y_continuous(breaks = 1:6, labels = n_levels) +
+  labs(title = expression(underline("Higher Agreeableness, Higher Ability to Make Friends Easily")),
+       x = "Agreeableness (subscale mean, 1-6)", y = NULL) +
+  theme_minimal() +
+ theme(legend.position = "none", 
+        plot.title = element_text(size = 10),
+        axis.text.x = element_text(size = 8))
+
+E4_jitter_plot
+
+```
+
+The pattern that is seen is higher reponse density and data that reflects those with high agreeableness responding that it is very and moderately accurate that they are easily able to make new friends. This is a good model to use, as the data being used is categorical and is separated based on specific levels of the data representing traits. Using a decimal average is not representative of one of the six Likert categories that were provided as an option of response, as they are not categories to be averaged, or having a meaning of numerical values.
+
+## 2.3. An Unordered Outcome
+
+```{r, unordered outcomes, bar graph}
+#| echo: FALSE
+
+#Count will assess how many chose each of the traits as their highest, and we will sort by size of the bars
+ordered_dat <- data |>
+  count(highest) |>
+  mutate(highest = fct_reorder(highest, n)) 
+
+#plot the unordered outcome
+unordered_plot <- ggplot(ordered_dat, aes(highest, n)) +
+  geom_col(width = 0.65, fill = "#FF1493") +
+  coord_flip() +
+  labs(title = "Dominant Trait: Five Traits, Unordered",
+       x = NULL, y = "People") +
+  theme_minimal() +
+   theme(legend.position = "none", 
+        plot.title = element_text(size = 10))
+
+unordered_plot
+```
+
+As previously mentioned, the dominant trait for each participant is the trait out of the five that has the overall highest subscale scoare. This plot shows how many people have each trait as their most dominant. This graph being unordered reflects the fact that these Big Five traits (Agreeableness, Openness, etc.) carry no innate ordeer and do not mean more than the others in any way. As such, the graph is ordered from most to least commomly dominant trait (top to bottom); this is dissimilar to the ordinal, Likert scale. We would be using a multinomial model here.
+
+# 3. Cumulative Probabilities
+
+## 3.1. Building a Cumulative Table
+
+```{r, cumulative probability table}
+#| echo: FALSE 
+
+obs_tab <- data |>
+  count(E4) |>
+  mutate(
+    Probability = n / sum(n),
+    CumulativeProbability = cumsum(Probability), 
+    CumulativeOdds = if_else(CumulativeProbability < 1,
+                             CumulativeProbability / (1 - CumulativeProbability), NA_real_),
+    Cumulative_Logodds = if_else(CumulativeProbability < 1,
+                                 qlogis(CumulativeProbability), NA_real_)  )
+
+#Creating a table with gt
+obs_tab |>
+  gt() |>
+  cols_label(
+    E4 = "Category in E4 (j)",
+    n = "n",
+    Probability = "P(Y = j)",
+    CumulativeProbability = "P(Y ≤ j)",
+    CumulativeOdds = "Odds of ≤ j",
+    Cumulative_Logodds = "Log-odds of ≤ j"
+  ) |>
+  fmt_number(columns = c(Probability, CumulativeProbability), decimals = 3) |>
+  fmt_number(columns = c(CumulativeOdds, Cumulative_Logodds), decimals = 2) |>
+  sub_missing(missing_text = "—")
+
+```
+
+Here, we are calculating cumulative probabilities, which are the probabilities of responding of a specific category (in this case, *j*), or something lower (i.e. selecting moderately inaccurate would also include what is below, such as very inaccurate); therefore, having 6 categoies, this means that there are 5 cumulative probabilities and the sixth, adding all together would be 100%. THis is why the last category would have undefined odds, becasue it incorporates everything above it. We are using these cumulative thresholds to later turn into probabilities. We will be using the function `cumsum()` to add these.
+
+In order to compute these, we can split our scale in two at *j*, quantifying things as above or below *j*, allowing for the values to now become binary (before versus after) and can use other link functions such as the logit link function. This threshold is only 5 values, as it's between each of the 6 categories to make the groupings, and there is a predetermined order that the values/outcomes will remain in.
+
+# 4. Specify and Estimate Cumulative Logit Models
+
+## 4.1. Explaining the Model
+
+Keeping in mind that ordinal models have no fixed value between the ordered categories, and rather it relates to falling above or below certain categories as we've mentioned with *j* above, and these are specific thresholds as the categories move between one another.
+
+## 4.2. Estimating Two Nested Models
+
+We will use the function `clm()` to estimate the models.
+
+| Model | Predictors | Purpose |
+|:-----------------------|:-----------------------|:-----------------------|
+| M0: Null | Thresholds Only | Baseline model |
+| M1: Predictor | Centered Predictor | Evaluate if predictor is associated with outcome |
+
+```{r, null and centered predictor}
+#| echo: FALSE
+
+# Null model: thresholds only, no predictors
+null <- clm(E4 ~ 1, data = data)
+
+# One-predictor model
+one_pred <- clm(E4 ~ agree_c, data = data)
+
+summary(one_pred)
+```
+
+## 4.3. Interpreting the Thresholds
+
+```{r, elements for inline code}
+#| echo: FALSE
+
+#coef() will list every estimate in the model, slope & 5 thresholds 
+coef(one_pred)
+
+#Agreeableness slope
+b <- coef(one_pred)[["agree_c"]]
+
+# 5 thresholds = first 5 estimates 
+th <- coef(one_pred)[1:5]
+
+# Category probabilities for a person of average Agreeableness (agree_c = 0) - centering the mean 
+
+# plogis(): turns log-odds into a probability, so plogis(th) gives P(Y <= j).
+cum_avg <- plogis(th)
+
+#Listing the category cumulative probabilities of someone with an average agreeableness (being 0, mean is centered)
+cat_p <- c(cum_avg[1] - 0,          # Very inaccurate
+           cum_avg[2] - cum_avg[1], # Moderately inaccurate
+           cum_avg[3] - cum_avg[2], # Slightly inaccurate
+           cum_avg[4] - cum_avg[3], # Slightly accurate
+           cum_avg[5] - cum_avg[4], # Moderately accurate
+           1 - cum_avg[5])          # Very accurate
+
+#tidy() making it into data frame with 95% CI, odds ratios (not log-odds), filtering to keep slope & drop threshold
+or_tab <- tidy(one_pred, conf.int = TRUE, exponentiate = TRUE) |>
+  filter(coef.type == "location")
+```
+
+```{r, transforming to cumulative probability}
+#Using pglogis() to transform to cumulative probability 
+
+tibble(
+  Category = n_levels,
+  theta = c(th, NA),
+  cum = c(plogis(th), 1),
+  cat_p = diff(c(0, plogis(th), 1))
+) |>
+  gt() |>
+  cols_label(
+    theta = "Threshold above category",
+    cum = "P(Y ≤ j)",
+    cat_p = "P(Y = j)"
+  ) |>
+  fmt_number(columns = theta, decimals = 2) |>
+  fmt_number(columns = c(cum, cat_p), decimals = 2) |>
+  sub_missing(missing_text = "—")
+
+```
+
+**Why Center the Predictor?**
+We will also center the mean, such that it becomes zero and all points can show variation around that. This alters the thresholds that we use to better assess the data. This also removes the ability of someone scoring a 0 on the 1-6 scale, which would also negatively impact analysis. This, however does not change the slope, in which the coefficients can show latent logit scale of agreeableness. This does not change the slope, becuase the mean is subtracted from each number, so even though the values change, the distance between then doesn't thus keeping the slope the same. The estimated slope is beta = `r b`. Higher Agreeableness decreases the the log-odds of being at or below each threshold, shifting values towards having higher Agreeableness values and higher slightly/moderately accurate values. The most likely response is `moderately accurate` category. 
