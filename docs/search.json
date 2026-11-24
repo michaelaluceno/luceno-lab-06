@@ -1,0 +1,128 @@
+[
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "Ordinal Logistic Regression with the Big Five",
+    "section": "",
+    "text": "library(tidyverse)\nlibrary(readxl)\nlibrary(psych)\nlibrary(ordinal)\nlibrary(ggeffects)\nlibrary(broom)\nlibrary(gt)\n\n\n\n\n\n\nThis bfi data highlights the Big Five Personality index, with 5 personality traits/behaviours in each (25 total). Data was collected from 2800 people. Questions were answered on a 6-point Likert scale from Very inaccurate to Very accurate.\nThe chosen trait is Extraversion. The ordered outcome is part of Extraversion, E4, “Make Friends easily.” The predictor is a person’s Agreeableness subscale score, the mean of A1 to A5 with A1 reverse-keyed.\nI predict that as people are more agreeable, that they will make friends more easily. I expect that the predictor of Agreeableness will be positively associated with higher scores in the ability to predict friends. This is because the trait of agreeableness centers around friendliness and getting along well with others, which is conducive to making friends easily.\n\n\n\n\n\n[1] 4.653816\n\n\nThe N analyzed was the number of participants left after removing those with improper (incomplete/missing) data for E4. This number was N = 2791. The predictor was scored being the mean of 5 Agreeableness behaviours in the questionnaire, with A1 reverse scored and A2-A5 staying the same. The rest were scored from 106 with lower values representing less of the behavior. The mean was calculated with mean(data$agree), which was 4.65."
+  },
+  {
+    "objectID": "index.html#choosing-variables",
+    "href": "index.html#choosing-variables",
+    "title": "Ordinal Logistic Regression with the Big Five",
+    "section": "",
+    "text": "This bfi data highlights the Big Five Personality index, with 5 personality traits/behaviours in each (25 total). Data was collected from 2800 people. Questions were answered on a 6-point Likert scale from Very inaccurate to Very accurate.\nThe chosen trait is Extraversion. The ordered outcome is part of Extraversion, E4, “Make Friends easily.” The predictor is a person’s Agreeableness subscale score, the mean of A1 to A5 with A1 reverse-keyed.\nI predict that as people are more agreeable, that they will make friends more easily. I expect that the predictor of Agreeableness will be positively associated with higher scores in the ability to predict friends. This is because the trait of agreeableness centers around friendliness and getting along well with others, which is conducive to making friends easily."
+  },
+  {
+    "objectID": "index.html#preparing-the-analysis-data",
+    "href": "index.html#preparing-the-analysis-data",
+    "title": "Ordinal Logistic Regression with the Big Five",
+    "section": "",
+    "text": "[1] 4.653816\n\n\nThe N analyzed was the number of participants left after removing those with improper (incomplete/missing) data for E4. This number was N = 2791. The predictor was scored being the mean of 5 Agreeableness behaviours in the questionnaire, with A1 reverse scored and A2-A5 staying the same. The rest were scored from 106 with lower values representing less of the behavior. The mean was calculated with mean(data$agree), which was 4.65."
+  },
+  {
+    "objectID": "index.html#the-ordered-outcome",
+    "href": "index.html#the-ordered-outcome",
+    "title": "Ordinal Logistic Regression with the Big Five",
+    "section": "2.1. The Ordered Outcome",
+    "text": "2.1. The Ordered Outcome\n\n\n# A tibble: 6 × 3\n  E4                        n      p\n  &lt;ord&gt;                 &lt;int&gt;  &lt;dbl&gt;\n1 Very inaccurate         140 0.0502\n2 Moderately inaccurate   262 0.0939\n3 Slightly inaccurate     271 0.0971\n4 Slightly accurate       450 0.161 \n5 Moderately accurate     942 0.338 \n6 Very accurate           726 0.260 \n\n\n\n\n\n\n\n\n\n\n\nThe data here shows that the Slightly inaccurate category has the smallest response 140; thresholds can be estimated without merging or altering any categories. Though the values were variable, none were so sparse that they were unable to be used."
+  },
+  {
+    "objectID": "index.html#how-predictor-relates-to-the-outcome",
+    "href": "index.html#how-predictor-relates-to-the-outcome",
+    "title": "Ordinal Logistic Regression with the Big Five",
+    "section": "2.2. How Predictor Relates to the Outcome",
+    "text": "2.2. How Predictor Relates to the Outcome\n\nJittered Dot Plots\n\n\n\n\n\n\n\n\n\nThe pattern that is seen is higher density in that category and data that reflects those with high agreeableness responding that it is very and moderately accurate that they are easily able to make new friends. This is a good model to use, as the data being used is categorical and is separated based on specific levels of the data representing traits. Using a decimal average is not representative of one of the six Likert categories that were provided as an option of response, as they are not categories to be averaged, or having a meaning of numerical values."
+  },
+  {
+    "objectID": "index.html#an-unordered-outcome",
+    "href": "index.html#an-unordered-outcome",
+    "title": "Ordinal Logistic Regression with the Big Five",
+    "section": "2.3. An Unordered Outcome",
+    "text": "2.3. An Unordered Outcome\n\n\n\n\n\n\n\n\n\nAs previously mentioned, the dominant trait for each participant is the trait out of the five that has the overall highest subscale scoare. This plot shows how many people have each trait as their most dominant. This graph being unordered reflects the fact that these Big Five traits (Agreeableness, Openness, etc.) carry no innate ordeer and do not mean more than the others in any way. As such, the graph is ordered from most to least commomly dominant trait (top to bottom); this is dissimilar to the ordinal, Likert scale. We would be using a multinomial model here."
+  },
+  {
+    "objectID": "index.html#building-a-cumulative-table",
+    "href": "index.html#building-a-cumulative-table",
+    "title": "Ordinal Logistic Regression with the Big Five",
+    "section": "3.1. Building a Cumulative Table",
+    "text": "3.1. Building a Cumulative Table\n\n\n\n\n\n\n\n\nCategory in E4 (j)\nn\nP(Y = j)\nP(Y ≤ j)\nOdds of ≤ j\nLog-odds of ≤ j\n\n\n\n\nVery inaccurate\n140\n0.050\n0.050\n0.05\n−2.94\n\n\nModerately inaccurate\n262\n0.094\n0.144\n0.17\n−1.78\n\n\nSlightly inaccurate\n271\n0.097\n0.241\n0.32\n−1.15\n\n\nSlightly accurate\n450\n0.161\n0.402\n0.67\n−0.40\n\n\nModerately accurate\n942\n0.338\n0.740\n2.84\n1.05\n\n\nVery accurate\n726\n0.260\n1.000\n—\n—\n\n\n\n\n\n\n\nHere, we are calculating cumulative probabilities, which are the probabilities of responding of a specific category (in this case, j), or something lower (i.e. selecting moderately inaccurate would also include what is below, such as very inaccurate); therefore, having 6 categories, this means that there are 5 cumulative probabilities and the sixth, adding all together would be 100%. This is why the last category would have undefined odds, becasue it incorporates everything above it. We are using these cumulative thresholds to later turn into probabilities. We will be using the function cumsum() to add these.\nIn order to compute these, we can split our scale in two at j, quantifying things as above or below j, allowing for the values to now become binary (before versus after) and can use other link functions such as the logit link function. This threshold is only 5 values, as it’s between each of the 6 categories to make the groupings, and there is a predetermined order that the values/outcomes will remain in."
+  },
+  {
+    "objectID": "index.html#explaining-the-model",
+    "href": "index.html#explaining-the-model",
+    "title": "Ordinal Logistic Regression with the Big Five",
+    "section": "4.1. Explaining the Model",
+    "text": "4.1. Explaining the Model\nKeeping in mind that ordinal models have no fixed value between the ordered categories, and rather it relates to falling above or below certain categories as we’ve mentioned with j above, and these are specific thresholds as the categories move between one another."
+  },
+  {
+    "objectID": "index.html#estimating-two-nested-models",
+    "href": "index.html#estimating-two-nested-models",
+    "title": "Ordinal Logistic Regression with the Big Five",
+    "section": "4.2. Estimating Two Nested Models",
+    "text": "4.2. Estimating Two Nested Models\nWe will use the function clm() to estimate the models.\n\n\n\n\n\n\n\n\nModel\nPredictors\nPurpose\n\n\n\n\nM0: Null\nThresholds Only\nBaseline model\n\n\nM1: Predictor\nCentered Predictor\nEvaluate if predictor is associated with outcome\n\n\n\n\n\nformula: E4 ~ agree_c\ndata:    data\n\n link  threshold nobs logLik   AIC     niter max.grad cond.H \n logit flexible  2791 -4210.46 8432.92 5(0)  1.70e-09 2.0e+01\n\nCoefficients:\n        Estimate Std. Error z value Pr(&gt;|z|)    \nagree_c  0.97300    0.04225   23.03   &lt;2e-16 ***\n---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n\nThreshold coefficients:\n                                          Estimate Std. Error z value\nVery inaccurate|Moderately inaccurate     -3.30285    0.09223  -35.81\nModerately inaccurate|Slightly inaccurate -2.02296    0.05844  -34.61\nSlightly inaccurate|Slightly accurate     -1.29478    0.04766  -27.17\nSlightly accurate|Moderately accurate     -0.42166    0.04099  -10.29\nModerately accurate|Very accurate          1.22052    0.04602   26.52"
+  },
+  {
+    "objectID": "index.html#interpreting-the-thresholds",
+    "href": "index.html#interpreting-the-thresholds",
+    "title": "Ordinal Logistic Regression with the Big Five",
+    "section": "4.3. Interpreting the Thresholds",
+    "text": "4.3. Interpreting the Thresholds\n\n\n    Very inaccurate|Moderately inaccurate \n                               -3.3028480 \nModerately inaccurate|Slightly inaccurate \n                               -2.0229584 \n    Slightly inaccurate|Slightly accurate \n                               -1.2947820 \n    Slightly accurate|Moderately accurate \n                               -0.4216639 \n        Moderately accurate|Very accurate \n                                1.2205208 \n                                  agree_c \n                                0.9730030 \n\n\n\n\n\n\n\n\n\n\nCategory\nThreshold above category\nP(Y ≤ j)\nP(Y = j)\n\n\n\n\nVery inaccurate\n−3.30\n0.04\n0.04\n\n\nModerately inaccurate\n−2.02\n0.12\n0.08\n\n\nSlightly inaccurate\n−1.29\n0.22\n0.10\n\n\nSlightly accurate\n−0.42\n0.40\n0.18\n\n\nModerately accurate\n1.22\n0.77\n0.38\n\n\nVery accurate\n—\n1.00\n0.23\n\n\n\n\n\n\n\nWhy Center the Predictor? We will also center the mean, such that it becomes zero and all points can show variation around that. This alters the thresholds that we use to better assess the data. This also removes the ability of someone scoring a 0 on the 1-6 scale, which would also negatively impact analysis. This, however does not change the slope, in which the coefficients can show latent logit scale of agreeableness. This does not change the slope, because the mean is subtracted from each number, so even though the values change, the distance between then doesn’t thus keeping the slope the same. The estimated slope is beta = 0.973003. Higher Agreeableness decreases the the log-odds of being at or below each threshold, shifting values towards having higher Agreeableness values and higher slightly/moderately accurate values. The most likely response is Moderately accurate (0.3760365)."
+  },
+  {
+    "objectID": "index.html#checking-the-null-model",
+    "href": "index.html#checking-the-null-model",
+    "title": "Ordinal Logistic Regression with the Big Five",
+    "section": "4.4 Checking the Null Model",
+    "text": "4.4 Checking the Null Model\nIn model M0, it is only the thresholds, and we must verify that that it is equal to the observed cumulative log-odds from previous sections.\n\n\n    Very inaccurate|Moderately inaccurate \n                               -2.9410498 \nModerately inaccurate|Slightly inaccurate \n                               -1.7821781 \n    Slightly inaccurate|Slightly accurate \n                               -1.1464822 \n    Slightly accurate|Moderately accurate \n                               -0.3956216 \n        Moderately accurate|Very accurate \n                                1.0453355 \n\n\n[1] -2.9410498 -1.7821781 -1.1464822 -0.3956216  1.0453355\n\n\nThis output reflects the fact that the thresholds are just the cumulative log odds of all the data in the sample. However, when adding Agreeableness as a predictor, now the thresholds are conditional on the predictor and will therefore not match the previous log-odds, which are cumulative."
+  },
+  {
+    "objectID": "index.html#comparing-the-models",
+    "href": "index.html#comparing-the-models",
+    "title": "Ordinal Logistic Regression with the Big Five",
+    "section": "5.1. Comparing the Models",
+    "text": "5.1. Comparing the Models\n\n\nLikelihood ratio tests of cumulative link models:\n \n         formula:     link: threshold:\nnull     E4 ~ 1       logit flexible  \none_pred E4 ~ agree_c logit flexible  \n\n         no.par    AIC  logLik LR.stat df Pr(&gt;Chisq)    \nnull          5 8995.5 -4492.8                          \none_pred      6 8432.9 -4210.5  564.62  1  &lt; 2.2e-16 ***\n---\nSignif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1\n\n\n\n\n\n\n\n\n\n\nModel\nParameters\nlogLik\nAIC\nΔAIC\n\n\n\n\nNull\n5\n−4,492.8\n8,995.5\n562.6\n\n\nAgreeableness\n6\n−4,210.5\n8,432.9\n0.0\n\n\n\n\n\n\n\nIt can be generally seen that with the addition of the Agreeableness predictor, there is a decrease in AIC and increase in LRT, both reflecting improved predictive ability. The Agreeableness model is preferred (ΔAIC = 562.6). Comparing M0 to M1 gave 564.62, with 1 degrees of freedom, and a p-value of &lt; 0.001."
+  },
+  {
+    "objectID": "index.html#interpreting-slope-on-latent-scale",
+    "href": "index.html#interpreting-slope-on-latent-scale",
+    "title": "Ordinal Logistic Regression with the Big Five",
+    "section": "5.2 Interpreting Slope on Latent Scale",
+    "text": "5.2 Interpreting Slope on Latent Scale\nThe slope on the latent logit scale is beta = 0.973003. The latent scale is a continuous scale which reflects the ease of making friends. Each one point increase in Agreeableness increases this latent scale of making friends by 0.973003.\nThe middle categories, being the adjacent thresholds, are each about 0.8006473, meaning that the one point of Agreeableness change alters their score on the latency continuum of making friends by 121.5270492%."
+  },
+  {
+    "objectID": "index.html#testing-proportional-odds",
+    "href": "index.html#testing-proportional-odds",
+    "title": "Ordinal Logistic Regression with the Big Five",
+    "section": "6.1. Testing Proportional Odds",
+    "text": "6.1. Testing Proportional Odds\nWhen using a model that assumes proportional odds, there is the same slope used with the five thresholds. Therefore, we can refit a model using nominal_test() with a different slope for the predictor (Agreeableness) at each threshold, and compares the models to compare the models and determine if it fits better. If the new slope does not fit significantly better than the old one, then they can all maintain the same slope.\n\n\nTests of nominal effects\n\nformula: E4 ~ agree_c\n        Df  logLik    AIC    LRT Pr(&gt;Chi)\n&lt;none&gt;     -4210.5 8432.9                \nagree_c  4 -4209.7 8439.4 1.4773   0.8307\n\n\nThe LRT statistic is 1.477286, with 4 degrees of freedom, and finally with a p-value of 0.8306572. This means that the test is not significant, and therefore the shared slope may be used rather than an individual one for each threshold. If it was significant, we would have the fit a partial proportional odds model.\n\nFitting Partial Proportional Odds Model in Needed\nThe previous results are insignificant, so no new model needs to be fitted, however these values will be needed for functions below.\n\n\n    Very inaccurate|Moderately inaccurate.(Intercept) \n                                           -3.3482512 \nModerately inaccurate|Slightly inaccurate.(Intercept) \n                                           -2.0461953 \n    Slightly inaccurate|Slightly accurate.(Intercept) \n                                           -1.3117424 \n    Slightly accurate|Moderately accurate.(Intercept) \n                                           -0.4305991 \n        Moderately accurate|Very accurate.(Intercept) \n                                            1.2007962 \n        Very inaccurate|Moderately inaccurate.agree_c \n                                           -1.0298282 \n    Moderately inaccurate|Slightly inaccurate.agree_c \n                                           -1.0079823 \n        Slightly inaccurate|Slightly accurate.agree_c \n                                           -1.0010445 \n        Slightly accurate|Moderately accurate.agree_c \n                                           -0.9672324 \n            Moderately accurate|Very accurate.agree_c \n                                           -0.9225678"
+  },
+  {
+    "objectID": "index.html#interpreting-the-odds-ratio",
+    "href": "index.html#interpreting-the-odds-ratio",
+    "title": "Ordinal Logistic Regression with the Big Five",
+    "section": "7.1. Interpreting the Odds Ratio",
+    "text": "7.1. Interpreting the Odds Ratio\nAgreeableness The odds ratio found for my predictor of Agreeableness is e^beta = 2.6458781, with the 95% CI being [2.4364666, 2.8753943], and finally a p-value of 2.3433206^{-117}.\nThese results mean that each one-point increase in Agreeableness multiplies the odds of responding above a threshold by a 165%, which is an increase in odds. This is because the slope of each threshold is the same, so the odds between each of them would be the same."
+  },
+  {
+    "objectID": "index.html#translating-odds-ratio-into-probabilities",
+    "href": "index.html#translating-odds-ratio-into-probabilities",
+    "title": "Ordinal Logistic Regression with the Big Five",
+    "section": "7.2. Translating Odds Ratio into Probabilities",
+    "text": "7.2. Translating Odds Ratio into Probabilities\n\n\n\n\n\n\n\n\nAgreeableness\nP(Slightly accurate or higher)\nOdds\n\n\n\n\n3\n0.42\n0.73\n\n\n4\n0.66\n1.93\n\n\n5\n0.84\n5.11\n\n\n6\n0.93\n13.53\n\n\n\n\n\n\n\nAt each one-point increase in the Likert scale of agreeableness, the one odds are multiplied by the odds ratio, which is 2.6458781. From 3 to 4, the probability increases by -0.2369051, from 4 to 5 was 0.1774418, and from 5 to 6 being 0.0947671 from 5 to 6. This shows that the change in probability is not the same at each step, as the constant odds ratio implies changes depending on the starting point."
+  },
+  {
+    "objectID": "index.html#plotting-predicted-category-probabilities",
+    "href": "index.html#plotting-predicted-category-probabilities",
+    "title": "Ordinal Logistic Regression with the Big Five",
+    "section": "7.3. Plotting Predicted Category Probabilities",
+    "text": "7.3. Plotting Predicted Category Probabilities\n\n\n\n\n\n\n\n\n\nOn the left, low levels of agreeableness are seen, which correspond with “Very inaccurate” then “Moderately inaccurate”, and as the subscale on the x axis increases, the probability is moved out of the lower category and more agreeable people are more likely to say that they make friends more easily."
+  },
+  {
+    "objectID": "index.html#plot-the-odds-ratio",
+    "href": "index.html#plot-the-odds-ratio",
+    "title": "Ordinal Logistic Regression with the Big Five",
+    "section": "7.4. Plot the Odds Ratio",
+    "text": "7.4. Plot the Odds Ratio\nThe plot shows the shared proportional-odds OR alongside the threshold-specific ORs from Section 6, so it also works as a visual check of proportional odds.\n\n\n\n\n\n\n\n\n\nWe can see that every interval is above (to the right of) 1.0, with the specific estimates remaining around their cluster, looking farily similar. This well represents the assumptions of proportional odds in agreement with each threshold being constant."
+  }
+]
