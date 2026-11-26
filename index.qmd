@@ -1,6 +1,6 @@
 ---
 title: "Ordinal Logistic Regression with the Big Five"
-subtitle: "Lab demo: does Agreeableness predict 'Get angry easily'?"
+subtitle: "Does Agreeableness Predict 'Makes Friends Easily?"
 author: "Michaela Luceno" 
 format:
   html:
